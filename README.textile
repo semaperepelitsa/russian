@@ -36,8 +36,6 @@ h1. Установка
 
 Страница Russian на github -- "http://github.com/yaroslav/russian/":http://github.com/yaroslav/russian/
 
-Gem можно устанавливать с "Gemcutter":http://gemcutter.org (предпочтительно) и с RubyForge.
-
 Для установки:
 
 @gem install russian@
@@ -54,7 +52,7 @@ h2. Ruby on Rails
 
 <pre><code>
 Rails::Initializer.run do |config|
-  config.gem 'russian', :source => 'http://gemcutter.org'
+  config.gem 'russian'
 end
 </code></pre>
 

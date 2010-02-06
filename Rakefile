@@ -5,7 +5,7 @@ require 'rubygems/specification'
 require 'date'
 
 GEM = "russian"
-GEM_VERSION = "0.2.5"
+GEM_VERSION = "0.3.0"
 AUTHOR = "Yaroslav Markin"
 EMAIL = "yaroslav@markin.net"
 HOMEPAGE = "http://github.com/yaroslav/russian/"
@@ -23,10 +23,9 @@ spec = Gem::Specification.new do |s|
   s.email = EMAIL
   s.homepage = HOMEPAGE
   
-  # Uncomment this to add a dependency
-  # s.add_dependency "foo"
+  # s.add_dependency "i18n", ">=0.3.3"
   
-  s.require_path = 'lib'
+  s.require_path = "lib"
   s.autorequire = GEM
   s.files = %w(LICENSE README.textile Rakefile CHANGELOG TODO init.rb) + Dir.glob("{lib,spec}/**/*")
 end

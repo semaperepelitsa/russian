@@ -1,5 +1,8 @@
+# encoding: utf-8
+
 dir = File.dirname(__FILE__)
-require dir + '/i18n_test.rb'
-require dir + '/simple_backend_test.rb'
-require dir + '/i18n_exceptions_test.rb'
-# *require* dir + '/custom_backend_test.rb'
+$LOAD_PATH.unshift(dir)
+
+Dir["#{dir}/**/*_test.rb"].sort.each do |file|
+  require file.sub(/^#{dir}\/(.*)\.rb$/, '\1')
+end

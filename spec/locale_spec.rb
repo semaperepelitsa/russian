@@ -32,8 +32,8 @@ describe Russian, "loading locales" do
   end
   
   it "should load pluralization rules" do
-    lookup(:"pluralize").should_not be_nil
-    lookup(:"pluralize").is_a?(Proc).should be_true
+    lookup(:"i18n.plural.rule").should_not be_nil
+    lookup(:"i18n.plural.rule").is_a?(Proc).should be_true
   end
 
   %w(
