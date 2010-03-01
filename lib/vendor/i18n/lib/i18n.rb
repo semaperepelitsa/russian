@@ -219,11 +219,21 @@ module I18n
 
     # Localizes certain objects, such as dates and numbers to local formatting.
     def localize(object, options = {})
-      locale = options[:locale] || I18n.locale
-      format = options[:format] || :default
-      backend.localize(locale, object, format)
+      locale = options.delete(:locale) || I18n.locale
+      format = options.delete(:format) || :default
+      backend.localize(locale, object, format, options)
     end
     alias :l :localize
+
+    # Merges the given locale, key and scope into a single array of keys.
+    # Splits keys that contain dots into multiple keys. Makes sure all
+    # keys are Symbols.
+    def normalize_keys(locale, key, scope, separator = nil)
+      keys = [locale] + Array(scope) + Array(key)
+      keys = keys.map { |k| k.to_s.split(separator || I18n.default_separator) }
+      keys = keys.flatten - ['']
+      keys.map { |k| k.to_sym }
+    end
 
   # making these private until Ruby 1.9.2 can send to protected methods again
   # see http://redmine.ruby-lang.org/repositories/revision/ruby-19?rev=24280
@@ -264,14 +274,10 @@ module I18n
       end
     end
 
-    # Merges the given locale, key and scope into a single array of keys.
-    # Splits keys that contain dots into multiple keys. Makes sure all
-    # keys are Symbols.
+    # Deprecated. Will raise a warning in future versions and then finally be
+    # removed. Use I18n.normalize_keys instead.
     def normalize_translation_keys(locale, key, scope, separator = nil)
-      keys = [locale] + Array(scope) + Array(key)
-      keys = keys.map { |k| k.to_s.split(separator || I18n.default_separator) }
-      keys = keys.flatten - ['']
-      keys.map { |k| k.to_sym }
+      normalize_keys(locale, key, scope, separator)
     end
   end
 end

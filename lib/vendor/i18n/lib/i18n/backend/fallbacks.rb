@@ -34,10 +34,12 @@ module I18n
       # locales it will then raise a MissingTranslationData exception as
       # usual.
       #
-      # The default option takes precedence over fallback locales, i.e. it
-      # will first evaluate a given default option before falling back to
-      # another locale.
+      # The default option takes precedence over fallback locales
+      # only when it's not a String. When default contains String it
+      # is evaluated after fallback locales.
       def translate(locale, key, options = {})
+        default = extract_string_default!(options) if options[:default]
+
         I18n.fallbacks[locale].each do |fallback|
           begin
             result = super(fallback, key, options)
@@ -45,7 +47,17 @@ module I18n
           rescue I18n::MissingTranslationData
           end
         end
+
+        return super(locale, nil, options.merge(:default => default)) if default
         raise(I18n::MissingTranslationData.new(locale, key, options))
+      end
+
+      def extract_string_default!(options)
+        defaults = Array(options[:default])
+        if index = defaults.index { |default| default.is_a?(::String) }
+          options[:default] = defaults[0, index]
+          defaults[index]
+        end
       end
     end
   end

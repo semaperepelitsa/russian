@@ -33,7 +33,7 @@ module I18n
         end
 
         def interpolated_str?(str)
-          str.kind_of?(String) && str =~ INTERPOLATION_SYNTAX_PATTERN
+          str.kind_of?(::String) && str =~ INTERPOLATION_SYNTAX_PATTERN
         end
 
         protected
@@ -102,7 +102,7 @@ module I18n
         end
       end
 
-      def merge_translations(locale, data)
+      def merge_translations(locale, data, options = {})
         compile_all_strings_in(data)
         super
       end

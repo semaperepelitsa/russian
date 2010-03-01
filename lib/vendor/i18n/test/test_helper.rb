@@ -1,7 +1,10 @@
 # encoding: utf-8
 
+$KCODE = 'u' unless RUBY_VERSION >= '1.9'
+
 $:.unshift File.expand_path("../lib", File.dirname(__FILE__))
-$:.unshift File.expand_path(File.dirname(__FILE__))
+$:.unshift(File.expand_path(File.dirname(__FILE__)))
+$:.uniq!
 
 require 'i18n'
 require 'i18n/core_ext/object/meta_class'
@@ -11,29 +14,33 @@ require 'test/unit'
 require 'time'
 require 'yaml'
 
+# Overwrite *gem* to not load i18n gem by libraries like active_support
+def gem(gem_name, *version_requirements)
+  if gem_name =='i18n'
+    puts "Skiping loading i18n gem..."
+    return
+  end
+  super(gem_name, *version_requirements)
+end unless RUBY_VERSION >= '1.9' # TODO fix this for 1.9. gives a super ugly seg fault
+
 begin
   require 'mocha'
 rescue LoadError
   puts "skipping tests using mocha as mocha can't be found"
 end
 
-
-Dir[File.dirname(__FILE__) + '/api/**/*.rb'].each do |filename|
-  require filename
-end
-
-$KCODE = 'u' unless RUBY_VERSION >= '1.9'
-
-# wtf is wrong with this, why's there Kernel#test?
-# class Module
-#   def self.test(name, &block)
-#     define_method("test: " + name, &block)
-#   end
-# end
-
 class Test::Unit::TestCase
   def self.test(name, &block)
-    define_method("test: " + name, &block)
+    test_name = "test_#{name.gsub(/\s+/,'_')}".to_sym
+    defined = instance_method(test_name) rescue false
+    raise "#{test_name} is already defined in #{self}" if defined
+    if block_given?
+      define_method(test_name, &block)
+    else
+      define_method(test_name) do
+        flunk "No implementation provided for #{name}"
+      end
+    end
   end
 
   def self.with_mocha
@@ -59,7 +66,7 @@ class Test::Unit::TestCase
   end
 
   def locales_dir
-    File.dirname(__FILE__) + '/fixtures/locales'
+    File.dirname(__FILE__) + '/test_data/locales'
   end
 
   def euc_jp(string)
@@ -72,29 +79,35 @@ class Test::Unit::TestCase
   end
 end
 
-def setup_active_record
+def require_active_record!
   begin
-    require 'activerecord'
+    require 'active_record'
+    ActiveRecord::Base.connection
+    true
+  rescue ActiveRecord::ConnectionNotEstablished
     require 'i18n/backend/active_record'
     require 'i18n/backend/active_record/store_procs'
-
-    if I18n::Backend::Simple.method_defined?(:interpolate_with_deprecated_syntax)
-      I18n::Backend::Simple.send(:remove_method, :interpolate) rescue NameError
-    end
-
-    ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :database => ":memory:")
-    ActiveRecord::Migration.verbose = false
-    ActiveRecord::Schema.define(:version => 1) do
-      create_table :translations do |t|
-        t.string :locale
-        t.string :key
-        t.string :value
-        t.string :interpolations
-        t.boolean :is_proc, :default => false
-      end
-    end
-
+    setup_active_record
+    true
   rescue LoadError
     puts "skipping tests using activerecord as activerecord can't be found"
+  end
+end
+
+def setup_active_record
+  if I18n::Backend::Simple.method_defined?(:interpolate_with_deprecated_syntax)
+    I18n::Backend::Simple.send(:remove_method, :interpolate) rescue NameError
+  end
+
+  ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :database => ":memory:")
+  ActiveRecord::Migration.verbose = false
+  ActiveRecord::Schema.define(:version => 1) do
+    create_table :translations do |t|
+      t.string :locale
+      t.string :key
+      t.string :value
+      t.string :interpolations
+      t.boolean :is_proc, :default => false
+    end
   end
 end

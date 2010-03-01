@@ -34,53 +34,51 @@ module I18n
       #
       # Note that it differs from <tt>localize</tt> in Simple< backend by checking for 
       # "standalone" month name/day name keys in translation and using them if available.
-      def localize(locale, object, format = :default)
+      def localize(locale, object, format = :default, options = {})
         raise ArgumentError, "Object must be a Date, DateTime or Time object. #{object.inspect} given." unless object.respond_to?(:strftime)
         
-        type = object.respond_to?(:sec) ? 'time' : 'date'
-        # TODO only translate these if format is a String?
-        formats = translate(locale, :"#{type}.formats")
-        format = formats[format.to_sym] if formats && formats[format.to_sym]
-        # TODO raise exception unless format found?
-        format = format.to_s.dup
-
-        # TODO only translate these if the format string is actually present
-        # TODO check which format strings are present, then bulk translate then, then replace them
-
+        if Symbol === format
+          key = format
+          type = object.respond_to?(:sec) ? 'time' : 'date'
+          format = I18n.t(:"#{type}.formats.#{key}", :locale => locale, :raise => true)
+        end
+        
+        format = resolve(locale, object, format, options).to_s.dup
+ 
         if lookup(locale, :"date.standalone_abbr_day_names")
           format.gsub!(LOCALIZE_STANDALONE_ABBR_DAY_NAMES_MATCH, 
-            translate(locale, :"date.standalone_abbr_day_names")[object.wday])
+            I18n.t(:"date.standalone_abbr_day_names", :locale => locale, :format => format)[object.wday])
         end
-        format.gsub!(/%a/, translate(locale, :"date.abbr_day_names")[object.wday])
+        format.gsub!(/%a/, I18n.t(:"date.abbr_day_names", :locale => locale, :format => format)[object.wday])
         
         if lookup(locale, :"date.standalone_day_names")
           format.gsub!(LOCALIZE_STANDALONE_DAY_NAMES_MATCH, 
-            translate(locale, :"date.standalone_day_names")[object.wday])
+            I18n.t(:"date.standalone_day_names", :locale => locale, :format => format)[object.wday])
         end
-        format.gsub!(/%A/, translate(locale, :"date.day_names")[object.wday])
-
+        format.gsub!(/%A/, I18n.t(:"date.day_names", :locale => locale, :format => format)[object.wday])
+        
         if lookup(locale, :"date.standalone_abbr_month_names")
           format.gsub!(LOCALIZE_ABBR_MONTH_NAMES_MATCH) do
-            $1 ? $1 + $2 + translate(locale, :"date.abbr_month_names")[object.mon] : 
-              $2 + translate(locale, :"date.standalone_abbr_month_names")[object.mon]
+            $1 ? $1 + $2 + I18n.t(:"date.abbr_month_names", :locale => locale, :format => format)[object.mon] : 
+              $2 + I18n.t(:"date.standalone_abbr_month_names", :locale => locale, :format => format)[object.mon]
           end
         else
-          format.gsub!(/%b/, translate(locale, :"date.abbr_month_names")[object.mon])
+          format.gsub!(/%b/, I18n.t(:"date.abbr_month_names", :locale => locale, :format => format)[object.mon])
         end
-
+        
         if lookup(locale, :"date.standalone_month_names")
           format.gsub!(LOCALIZE_MONTH_NAMES_MATCH) do
-            $1 ? $1 + $2 + translate(locale, :"date.month_names")[object.mon] : 
-              $2 + translate(locale, :"date.standalone_month_names")[object.mon]
+            $1 ? $1 + $2 + I18n.t(:"date.month_names", :locale => locale, :format => format)[object.mon] : 
+              $2 + I18n.t(:"date.standalone_month_names", :locale => locale, :format => format)[object.mon]
           end
         else
-          format.gsub!(/%B/, translate(locale, :"date.month_names")[object.mon])
+          format.gsub!(/%B/, I18n.t(:"date.month_names", :locale => locale, :format => format)[object.mon])
         end
-
-        format.gsub!(/%p/, translate(locale, :"time.#{object.hour < 12 ? :am : :pm}")) if object.respond_to? :hour
+        
+        format.gsub!(/%p/, I18n.t(:"time.#{object.hour < 12 ? :am : :pm}", :locale => locale, :format => format)) if object.respond_to? :hour
+      
         object.strftime(format)
       end
-      
     end
   end
 end

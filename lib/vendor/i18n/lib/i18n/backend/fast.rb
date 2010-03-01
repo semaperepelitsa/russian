@@ -12,7 +12,7 @@
 module I18n
   module Backend
     module Fast
-      SEPARATOR_ESCAPE_CHAR = "\001"
+      include Links
 
       def reset_flattened_translations!
         @flattened_translations = nil
@@ -22,7 +22,7 @@ module I18n
         @flattened_translations ||= flatten_translations(translations)
       end
 
-      def merge_translations(locale, data)
+      def merge_translations(locale, data, options = {})
         super
         reset_flattened_translations!
       end
@@ -33,29 +33,30 @@ module I18n
       end
 
       protected
-        # flatten_hash({:a=>'a', :b=>{:c=>'c', :d=>'d', :f=>{:x=>'x'}}})
-        # # => {:a=>'a', :b=>{:c=>'c', :d=>'d', :f=>{:x=>'x'}}, :"b.f" => {:x=>"x"}, :"b.c"=>"c", :"b.f.x"=>"x", :"b.d"=>"d"}
-        def flatten_hash(h, nested_stack = [], flattened_h = {}, orig_h=h)
-          wind_keys(h, nil, true)
-        end
-
         def flatten_translations(translations)
           # don't flatten locale roots
-          translations.inject({}) do |flattened_h, (locale_name, locale_translations)|
-            flattened_h[locale_name] = flatten_hash(locale_translations)
-            flattened_h
+          translations.inject({}) do |result, (locale, translations)|
+            result[locale] = wind_keys(translations, nil, true)
+            result[locale].each do |key, value|
+              store_link(locale, key, value) if value.is_a?(Symbol)
+            end
+            result
           end
         end
 
-        def lookup(locale, key, scope = nil, separator = nil)
+        def lookup(locale, key, scope = nil, options = {})
           return unless key
           init_translations unless initialized?
 
+          return nil unless flattened_translations.has_key?(locale.to_sym)
+
+          separator = options[:separator]
           if separator && I18n.default_separator != separator
             key   = cleanup_non_standard_separator(key, separator)
             scope = Array(scope).map{|k| cleanup_non_standard_separator(k, separator)} if scope
           end
-
+          
+          key = resolve_link(locale, key)
           key = (Array(scope) + [key]).join(I18n.default_separator) if scope
           flattened_translations[locale.to_sym][key.to_sym]
         end
