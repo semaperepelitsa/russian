@@ -4,8 +4,7 @@ if RUBY_VERSION < "1.9"
   $KCODE = 'u'
 end
 
-$:.push File.join(File.dirname(__FILE__), 'russian')
-require 'transliteration'
+require 'russian/transliteration'
 
 # I18n require
 unless defined?(I18n)
@@ -13,7 +12,7 @@ unless defined?(I18n)
   require 'i18n'
 end
 # Advanced backend
-require 'backend/advanced'
+require 'russian/backend/advanced'
 
 # Rails hacks
 require 'active_record_ext/custom_error_message' if defined?(ActiveRecord)
