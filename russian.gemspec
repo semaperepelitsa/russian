@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Yaroslav Markin"]
   s.autorequire = %q{russian}
-  s.date = %q{2010-03-21}
+  s.date = %q{2010-03-25}
   s.description = %q{Russian language support for Ruby and Rails}
   s.email = %q{yaroslav@markin.net}
   s.extra_rdoc_files = ["README.textile", "LICENSE", "CHANGELOG", "TODO"]

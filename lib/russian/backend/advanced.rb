@@ -18,8 +18,8 @@ module I18n
     class Advanced < Simple
       include I18n::Backend::Pluralization
 
-      LOCALIZE_ABBR_MONTH_NAMES_MATCH = /(%d|%e)?(\s*)(%b)/
-      LOCALIZE_MONTH_NAMES_MATCH = /(%d|%e)?(\s*)(%B)/
+      LOCALIZE_ABBR_MONTH_NAMES_MATCH = /(%d|%e)(.*)(%b)/
+      LOCALIZE_MONTH_NAMES_MATCH = /(%d|%e)(.*)(%B)/
       LOCALIZE_STANDALONE_ABBR_DAY_NAMES_MATCH = /^%a/
       LOCALIZE_STANDALONE_DAY_NAMES_MATCH = /^%A/
       
@@ -59,18 +59,18 @@ module I18n
         
         if lookup(locale, :"date.standalone_abbr_month_names")
           format.gsub!(LOCALIZE_ABBR_MONTH_NAMES_MATCH) do
-            $1 ? $1 + $2 + I18n.t(:"date.abbr_month_names", :locale => locale, :format => format)[object.mon] : 
-              $2 + I18n.t(:"date.standalone_abbr_month_names", :locale => locale, :format => format)[object.mon]
+            $1 + $2 + translate(locale, :"date.abbr_month_names")[object.mon]
           end
+          format.gsub!(/%b/, translate(locale, :"date.standalone_abbr_month_names")[object.mon])
         else
           format.gsub!(/%b/, I18n.t(:"date.abbr_month_names", :locale => locale, :format => format)[object.mon])
         end
         
         if lookup(locale, :"date.standalone_month_names")
           format.gsub!(LOCALIZE_MONTH_NAMES_MATCH) do
-            $1 ? $1 + $2 + I18n.t(:"date.month_names", :locale => locale, :format => format)[object.mon] : 
-              $2 + I18n.t(:"date.standalone_month_names", :locale => locale, :format => format)[object.mon]
+            $1 + $2 + translate(locale, :"date.month_names")[object.mon]
           end
+          format.gsub!(/%B/, translate(locale, :"date.standalone_month_names")[object.mon])
         else
           format.gsub!(/%B/, I18n.t(:"date.month_names", :locale => locale, :format => format)[object.mon])
         end
